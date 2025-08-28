@@ -86,11 +86,6 @@ class DashboardController extends Controller
         $topCriticalServices = array_slice($servicesCount, 0, 3, true); // Top 5 services
 
         $sessionId = Session::getId();
-        $recentSearches = DB::table('search_histories')
-            ->where('user_session', $sessionId)
-            ->orderByDesc('created_at')
-            ->limit(5)
-            ->get();
 
         // Transmission des données à la vue
         return view('pages.Dashboard.dashboard', [
@@ -116,7 +111,7 @@ class DashboardController extends Controller
                 ],
             ],
             'top_critical_services' => $topCriticalServices,
-            'recentSearches' => $recentSearches
+
         ]);
     }
 }

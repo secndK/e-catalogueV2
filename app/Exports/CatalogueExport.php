@@ -40,6 +40,7 @@ class CatalogueExport implements FromCollection, WithHeadings, WithMapping, With
             'Environnement Type', // DEV, TEST, PROD
             'URL Environnement',
             'Adresse Serveur',
+            'Nom DNS', // NOUVEAU: Champ nom_dns pour DEV
             'Sys Exp Serveur',
             'Distribution Sys Exp Serveur',
             'Version Sys Exp Serveur',
@@ -50,8 +51,8 @@ class CatalogueExport implements FromCollection, WithHeadings, WithMapping, With
             'Utilisateur Base de Données',
             'Langage de programmation',
             'Version Langage',
-            'Framework', // NOUVEAU
-            'Version Framework', // NOUVEAU
+            'Framework',
+            'Version Framework',
             'Services critiques',
             'Statut'
         ];
@@ -87,8 +88,8 @@ class CatalogueExport implements FromCollection, WithHeadings, WithMapping, With
                     ]
                 ]
             ],
-            // Alignement général pour toutes les colonnes utilisées (A à V)
-            'A:V' => [ // Ajusté pour inclure les nouvelles colonnes
+            // Alignement général pour toutes les colonnes utilisées (A à W)
+            'A:W' => [ // Ajusté pour inclure la nouvelle colonne Nom DNS
                 'alignment' => [
                     'vertical' => Alignment::VERTICAL_TOP,
                     'wrapText' => true
@@ -107,8 +108,8 @@ class CatalogueExport implements FromCollection, WithHeadings, WithMapping, With
                     'underline' => true
                 ]
             ],
-            // Style des services critiques (colonne U)
-            'U' => [ // Ajusté de S à U
+            // Style des services critiques (colonne V)
+            'V' => [ // Ajusté de U à V
                 'alignment' => [
                     'wrapText' => true,
                     'vertical' => Alignment::VERTICAL_TOP
@@ -128,20 +129,21 @@ class CatalogueExport implements FromCollection, WithHeadings, WithMapping, With
             'F' => 15, // Environnement Type
             'G' => 25, // URL Environnement
             'H' => 20, // Adresse Serveur
-            'I' => 15, // OS Serveur
-            'J' => 20, // Distribution OS Serveur
-            'K' => 15, // Version OS Serveur
-            'L' => 20, // Adresse BD
-            'M' => 15, // OS Base de Données
-            'N' => 20, // Nom de la BD
-            'O' => 10, // Port BD
-            'P' => 20, // Utilisateur BD
-            'Q' => 20, // Langage de programmation
-            'R' => 15, // Version Langage
-            'S' => 20, // NOUVEAU: Framework
-            'T' => 15, // NOUVEAU: Version Framework
-            'U' => 30, // Ajusté: Services critiques
-            'V' => 15  // Ajusté: Statut
+            'I' => 20, // NOUVEAU: Nom DNS
+            'J' => 15, // OS Serveur
+            'K' => 20, // Distribution OS Serveur
+            'L' => 15, // Version OS Serveur
+            'M' => 20, // Adresse BD
+            'N' => 15, // OS Base de Données
+            'O' => 20, // Nom de la BD
+            'P' => 10, // Port BD
+            'Q' => 20, // Utilisateur BD
+            'R' => 20, // Langage de programmation
+            'S' => 15, // Version Langage
+            'T' => 20, // Framework
+            'U' => 15, // Version Framework
+            'V' => 30, // Services critiques
+            'W' => 15  // Statut
         ];
     }
 
@@ -158,6 +160,7 @@ class CatalogueExport implements FromCollection, WithHeadings, WithMapping, With
                             'url' => $catalogue->url_dev,
                             'env_name' => $catalogue->env_dev,
                             'server' => $catalogue->adr_serv_dev,
+                            'nom_dns' => $catalogue->nom_dns, // NOUVEAU: Champ nom_dns pour DEV
                             'os_server' => $catalogue->sys_exp_dev,
                             'dist_sys' => $catalogue->dist_sys_dev,
                             'vers_sys' => $catalogue->vers_sys_dev,
@@ -168,8 +171,8 @@ class CatalogueExport implements FromCollection, WithHeadings, WithMapping, With
                             'user_bd' => $catalogue->user_bd_dev,
                             'lang' => $catalogue->lang_deve_dev,
                             'vers_lang' => $catalogue->vers_lang_dev,
-                            'fram' => $catalogue->fram_dev, // Ajouté
-                            'vers_fram' => $catalogue->vers_fram_dev, // Ajouté
+                            'fram' => $catalogue->fram_dev,
+                            'vers_fram' => $catalogue->vers_fram_dev,
                             'critical' => $catalogue->critical_dev,
                             'status' => $catalogue->statut_dev
                         ],
@@ -177,6 +180,7 @@ class CatalogueExport implements FromCollection, WithHeadings, WithMapping, With
                             'url' => $catalogue->url_test,
                             'env_name' => $catalogue->env_test,
                             'server' => $catalogue->adr_serv_test,
+                            'nom_dns' => null, // Pas de nom_dns pour TEST
                             'os_server' => $catalogue->sys_exp_test,
                             'dist_sys' => $catalogue->dist_sys_test,
                             'vers_sys' => $catalogue->vers_sys_test,
@@ -187,8 +191,8 @@ class CatalogueExport implements FromCollection, WithHeadings, WithMapping, With
                             'user_bd' => $catalogue->user_bd_test,
                             'lang' => $catalogue->lang_deve_test,
                             'vers_lang' => $catalogue->vers_lang_test,
-                            'fram' => $catalogue->fram_test, // Ajouté
-                            'vers_fram' => $catalogue->vers_fram_test, // Ajouté
+                            'fram' => $catalogue->fram_test,
+                            'vers_fram' => $catalogue->vers_fram_test,
                             'critical' => $catalogue->critical_test,
                             'status' => $catalogue->statut_test
                         ],
@@ -196,6 +200,7 @@ class CatalogueExport implements FromCollection, WithHeadings, WithMapping, With
                             'url' => $catalogue->url_prod,
                             'env_name' => $catalogue->env_prod,
                             'server' => $catalogue->adr_serv_prod,
+                            'nom_dns' => null, // Pas de nom_dns pour PROD
                             'os_server' => $catalogue->sys_exp_prod,
                             'dist_sys' => $catalogue->dist_sys_prod,
                             'vers_sys' => $catalogue->vers_sys_prod,
@@ -206,8 +211,8 @@ class CatalogueExport implements FromCollection, WithHeadings, WithMapping, With
                             'user_bd' => $catalogue->user_bd_prod,
                             'lang' => $catalogue->lang_deve_prod,
                             'vers_lang' => $catalogue->vers_lang_prod,
-                            'fram' => $catalogue->fram_prod, // Ajouté
-                            'vers_fram' => $catalogue->vers_fram_prod, // Ajouté
+                            'fram' => $catalogue->fram_prod,
+                            'vers_fram' => $catalogue->vers_fram_prod,
                             'critical' => $catalogue->critical_prod,
                             'status' => $catalogue->statut_prod
                         ]
@@ -230,20 +235,21 @@ class CatalogueExport implements FromCollection, WithHeadings, WithMapping, With
                         $sheet->setCellValue('F' . $rowIndex, $envType); // Type d'environnement (DEV, TEST, PROD)
                         $sheet->setCellValue('G' . $rowIndex, $this->formatUrl($envData['url'])); // URL Environnement
                         $sheet->setCellValue('H' . $rowIndex, $this->formatText($envData['server'])); // Adresse Serveur
-                        $sheet->setCellValue('I' . $rowIndex, $this->formatText($envData['os_server'])); // OS Serveur
-                        $sheet->setCellValue('J' . $rowIndex, $this->formatText($envData['dist_sys'])); // Distribution OS Serveur
-                        $sheet->setCellValue('K' . $rowIndex, $this->formatText($envData['vers_sys'])); // Version OS Serveur
-                        $sheet->setCellValue('L' . $rowIndex, $this->formatText($envData['db'])); // Adresse BD
-                        $sheet->setCellValue('M' . $rowIndex, $this->formatText($envData['os_db'])); // OS BD
-                        $sheet->setCellValue('N' . $rowIndex, $this->formatText($envData['nom_bd'])); // Nom de la BD
-                        $sheet->setCellValue('O' . $rowIndex, $this->formatText($envData['port_bd'])); // Port BD
-                        $sheet->setCellValue('P' . $rowIndex, $this->formatText($envData['user_bd'])); // Utilisateur BD
-                        $sheet->setCellValue('Q' . $rowIndex, $this->formatText($envData['lang'])); // Langage de programmation
-                        $sheet->setCellValue('R' . $rowIndex, $this->formatText($envData['vers_lang'])); // Version Langage
-                        $sheet->setCellValue('S' . $rowIndex, $this->formatText($envData['fram'])); // NOUVEAU: Framework
-                        $sheet->setCellValue('T' . $rowIndex, $this->formatText($envData['vers_fram'])); // NOUVEAU: Version Framework
-                        $sheet->setCellValue('U' . $rowIndex, $this->formatJson($envData['critical'])); // Ajusté: Services critiques
-                        $sheet->setCellValue('V' . $rowIndex, $this->formatStatus($envData['status'])); // Ajusté: Statut
+                        $sheet->setCellValue('I' . $rowIndex, $this->formatText($envData['nom_dns'])); // NOUVEAU: Nom DNS
+                        $sheet->setCellValue('J' . $rowIndex, $this->formatText($envData['os_server'])); // OS Serveur
+                        $sheet->setCellValue('K' . $rowIndex, $this->formatText($envData['dist_sys'])); // Distribution OS Serveur
+                        $sheet->setCellValue('L' . $rowIndex, $this->formatText($envData['vers_sys'])); // Version OS Serveur
+                        $sheet->setCellValue('M' . $rowIndex, $this->formatText($envData['db'])); // Adresse BD
+                        $sheet->setCellValue('N' . $rowIndex, $this->formatText($envData['os_db'])); // OS BD
+                        $sheet->setCellValue('O' . $rowIndex, $this->formatText($envData['nom_bd'])); // Nom de la BD
+                        $sheet->setCellValue('P' . $rowIndex, $this->formatText($envData['port_bd'])); // Port BD
+                        $sheet->setCellValue('Q' . $rowIndex, $this->formatText($envData['user_bd'])); // Utilisateur BD
+                        $sheet->setCellValue('R' . $rowIndex, $this->formatText($envData['lang'])); // Langage de programmation
+                        $sheet->setCellValue('S' . $rowIndex, $this->formatText($envData['vers_lang'])); // Version Langage
+                        $sheet->setCellValue('T' . $rowIndex, $this->formatText($envData['fram'])); // Framework
+                        $sheet->setCellValue('U' . $rowIndex, $this->formatText($envData['vers_fram'])); // Version Framework
+                        $sheet->setCellValue('V' . $rowIndex, $this->formatJson($envData['critical'])); // Services critiques
+                        $sheet->setCellValue('W' . $rowIndex, $this->formatStatus($envData['status'])); // Statut
 
                         // Style des bordures pour la ligne actuelle
                         $styleArray = [
@@ -254,7 +260,7 @@ class CatalogueExport implements FromCollection, WithHeadings, WithMapping, With
                                 ],
                             ],
                         ];
-                        $sheet->getStyle('A' . $rowIndex . ':V' . $rowIndex)->applyFromArray($styleArray); // Ajusté de T à V
+                        $sheet->getStyle('A' . $rowIndex . ':W' . $rowIndex)->applyFromArray($styleArray); // Ajusté de V à W
 
                         // Fusionner les cellules communes si nécessaire (pour les colonnes A à E)
                         if ($firstRowForApp && $rowSpan > 1) {
@@ -266,7 +272,7 @@ class CatalogueExport implements FromCollection, WithHeadings, WithMapping, With
 
                         // Appliquer un fond différent pour chaque application (sur toutes ses lignes d'environnement)
                         if ($envType === 'DEV' && ($catalogue->id % 2 === 0)) {
-                            $sheet->getStyle('A' . $rowIndex . ':V' . ($rowIndex + $rowSpan - 1)) // Ajusté de T à V
+                            $sheet->getStyle('A' . $rowIndex . ':W' . ($rowIndex + $rowSpan - 1)) // Ajusté de V à W
                                 ->getFill()
                                 ->setFillType(Fill::FILL_SOLID)
                                 ->getStartColor()

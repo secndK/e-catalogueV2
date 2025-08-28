@@ -235,37 +235,33 @@
 
         /* Bouton d'accès guest */
         .guest-access {
-            margin-bottom: 2rem;
+            margin-top: 1.5rem;
+            text-align: center;
         }
 
         .guest-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             width: 100%;
             padding: 1rem;
-            background: rgba(10, 25, 47, 0.6);
-            border: 2px dashed rgba(67, 56, 202, 0.5);
-            border-radius: 16px;
-            color: rgba(255, 255, 255, 0.9);
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            color: #fff;
             font-size: 1rem;
             font-weight: 500;
             text-decoration: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
             transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
-        }
-
-        .guest-btn:hover {
-            background: rgba(67, 56, 202, 0.2);
-            border-color: rgba(67, 56, 202, 0.8);
-            color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(67, 56, 202, 0.2);
         }
 
         .guest-btn i {
-            font-size: 1.1rem;
+            margin-right: 8px;
+        }
+
+        .guest-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
         }
 
         /* Options supplémentaires */
@@ -466,8 +462,6 @@
             <p>Connectez-vous à votre espace</p>
         </div>
 
-
-
         <form method="POST" action="{{ route('login') }}" id="loginForm">
             @csrf
 
@@ -489,58 +483,59 @@
                 <div class="text-danger small">{{ $message }}</div>
             @enderror
 
-            <button type="submit" class="login-btn" id="loginBtn">
-                <span>Se connecter</span>
-            </button>
+            <div class="form-group">
+                <button type="submit" class="login-btn">
+                    <i class="fas fa-sign-in-alt"></i> Se connecter
+                </button>
+            </div>
+
+
         </form>
 
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                // Pour les messages d'erreur de session
-                @if (session('error'))
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Erreur !',
-                        text: '{{ session('error') }}',
-                        confirmButtonText: 'OK'
-                    });
-                @endif
 
-                // Pour les messages de succès (si vous en ajoutez un jour)
-                @if (session('success'))
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Succès !',
-                        text: '{{ session('success') }}',
-                        showConfirmButton: false,
-                        timer: 3000
-                    });
-                @endif
 
-                // Pour les erreurs de validation de Laravel
-                @if ($errors->any())
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Erreur de validation !',
-                        html: '<ul>' +
-                            @foreach ($errors->all() as $error)
-                                '<li>{{ $error }}</li>' +
-                            @endforeach
-                        '</ul>',
-                        confirmButtonText: 'Compris'
-                    });
-                @endif
-            });
-        </script>
-
-        <div class="guest-access">
-            <a href="{{ route('guest.access') }}" class="guest-btn">
-                <i class="fas fa-eye"></i>
-                <span>Accéder au catalogue en tant que visiteur</span>
-            </a>
-        </div>
 
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Pour les messages d'erreur de session
+            @if (session('error'))
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erreur !',
+                    text: '{{ session('error') }}',
+                    confirmButtonText: 'OK'
+                });
+            @endif
+
+            // Pour les messages de succès
+            @if (session('success'))
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Succès !',
+                    text: '{{ session('success') }}',
+                    showConfirmButton: false,
+                    timer: 3000
+                });
+            @endif
+
+            // Pour les erreurs de validation de Laravel
+            @if ($errors->any())
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erreur de validation !',
+                    html: '<ul>' +
+                        @foreach ($errors->all() as $error)
+                            '<li>{{ $error }}</li>' +
+                        @endforeach
+                    '</ul>',
+                    confirmButtonText: 'Compris'
+                });
+            @endif
+        });
+    </script>
+
 
     <script>
         // Génération des particules
@@ -656,6 +651,5 @@
         });
     </script>
 </body>
-
 
 </html>

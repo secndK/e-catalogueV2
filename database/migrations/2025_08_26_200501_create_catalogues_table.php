@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('env_dev')->nullable();
             $table->string('url_dev')->nullable();
             $table->string('adr_serv_dev')->nullable();
+            $table->string('nom_dns')->nullable();
             $table->string('sys_exp_dev')->nullable();
             $table->string('vers_sys_dev')->nullable();
             $table->string('dist_sys_dev')->nullable();

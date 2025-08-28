@@ -23,14 +23,6 @@ class AppServiceProvider extends ServiceProvider
     {
         View::composer('*', function ($view) {
             $sessionId = session()->getId();
-
-            $recentSearches = DB::table('search_histories')
-                ->where('user_session', $sessionId)
-                ->orderByDesc('created_at')
-                ->limit(5)
-                ->get();
-
-            $view->with('recentSearches', $recentSearches);
         });
 
 

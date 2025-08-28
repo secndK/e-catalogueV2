@@ -4,8 +4,6 @@
         </a>
         <ul class="sidebar-nav">
             <li class="sidebar-header">Menu Principal</li>
-
-
             @auth
                 @if (Auth::user()->role === 'admin')
                     <li class="sidebar-item"> {{-- Assurez-vous que "Stats" est dans un li --}}
@@ -16,51 +14,32 @@
                     </li>
                 @endif
 
-                {{-- Le lien "Nouvelle Application" est un modal, il n'a pas besoin de devenir actif en fonction de l'URL --}}
-
             @endauth
-            <li class="sidebar-item"> {{-- "Accueil" est déjà dans un li, c'est bon --}}
+            <li class="sidebar-item">
                 <a class="sidebar-link" href="{{ route('catalogue') }}">
                     <i class="bi bi-window-stack"></i>
                     <span class="align-middle">Applications</span>
                 </a>
             </li>
 
-            @if ($recentSearches->count())
-                <li class="sidebar-header recent-searches-header">
-                    <i class="bi bi-clock-history me-2"></i> Recherches Récentes
-                </li>
 
-                @foreach ($recentSearches as $search)
-                    <li class=" recent-search-item">
-                        <a class="sidebar-link recent-search-link">
-                            <i class="bi bi-search me-2"></i>
-                            <span>{{ $search->search_term }}</span>
-                            <small class="text-muted ms-2">({{ $search->results_count }} résultats)</small>
-                        </a>
-                    </li>
-                @endforeach
-            @endif
+
         </ul>
-
         <div class="sidebar-cta">
-            <div class="sidebar-cta-content">
-                <strong class="d-inline-block mb-2">E-CATALOGUE v1.0</strong>
-                <div class="mb-3 text-sm">Système de gestion des applications</div>
-
-                @if ($recentSearches->count())
-                    <form method="POST" action="{{ route('clear.search.history') }}">
-                        @csrf
-                        <button class="btn btn-sm btn-outline-danger clear-searches-btn" title="Effacer l'historique">
-                            <i class="bi bi-trash me-1"></i> Effacer l'historique
-                        </button>
-                    </form>
-                @endif
-
+            <div class="sidebar-cta-content d-flex flex-column align-items-center">
+                <strong class="d-inline-block mb-2">
+                    <i class="fas fa-rocket"></i> E-CATALOGUE
+                </strong>
+                <button class="btn btn-primary disabled text-sm" disabled>
+                    DEV IT - AOÛT 2025
+                </button>
             </div>
         </div>
     </div>
 </nav>
+
+
+{{-- =====================================================SCRIPTS POUR LES ACTIVES+++++++++++++++++++++++++++++++++++++++++++++ --}}
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {
@@ -109,24 +88,10 @@
             }
         });
 
-        // Cas particulier pour les liens de recherche récente :
-        const recentSearchLinks = document.querySelectorAll('.recent-search-link');
-        recentSearchLinks.forEach(link => {
-            // Compare l'URL complète pour les recherches récentes
-            if (link.href === window.location.href) {
-                // Supprime la classe 'active' de tous les autres liens d'abord
-                document.querySelectorAll('#sidebar .sidebar-item.active').forEach(item => item
-                    .classList.remove('active'));
-                document.querySelectorAll('#sidebar .sidebar-link.active').forEach(lnk => lnk.classList
-                    .remove('active'));
 
-                link.classList.add('active');
-                let parentItem = link.closest('.sidebar-item');
-                if (parentItem) {
-                    parentItem.classList.add('active');
-                }
-            }
-        });
+
+
+
     });
 </script>
 

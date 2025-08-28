@@ -9,34 +9,27 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Pagination\LengthAwarePaginator;
-
 use Illuminate\Support\Collection;
 
+use App\Models\User;
+use Illuminate\Support\Facades\Notification;
+use App\Notifications\NouvelleDemandeServeurNotification;
 use Maatwebsite\Excel\Facades\Excel;
-use Illuminate\Support\Facades\Session;
+
 
 class CatalogueController extends Controller
 {
     /**Cette fonction servira à recupérer l'ensemble des données pour les afficher dans la vue */
-    /**
-     * Cette fonction servira à récupérer l'ensemble des données pour les afficher dans la vue
-     */
+
     public function getCatalogue()
     {
         $catalogue = DB::table('catalogues')
             ->orderBy('app_name', 'ASC')
             ->paginate(3);
 
-
-        $recentSearches = DB::table('search_histories')
-            ->where('user_session', Session::getId())
-            ->orderByDesc('created_at')
-            ->limit(5)
-            ->get();
-
         return view('pages.catalogue.application', [
+
             'catalogue' => $catalogue,
-            'recent_searches' => $recentSearches,
             'search_query' => '',
             'show_all' => true,
         ]);
@@ -45,79 +38,50 @@ class CatalogueController extends Controller
     /**Cette fonction servira à recupérer l'ensemble des données pour les afficher dans la vue
      * après avoir entre le nom au l'ip correspondant de l'application
      */
+
     public function postCatalogue(Request $request)
     {
         $searchQuery = $request->post('rechercher', '');
-        $results = [];
+        $perPage = 3; // pagination forcé pour afficher que 3 app max
 
         if (!empty($searchQuery)) {
             $lowerSearch = strtolower($searchQuery);
-            $results = DB::connection('mysql')->select(
-                'SELECT * FROM catalogues
-        WHERE LOWER(app_name) LIKE ?
-        OR LOWER(url_app) LIKE ?
-        OR LOWER(url_doc) LIKE ?
-        OR LOWER(url_git) LIKE ?
-        OR LOWER(adr_serv_dev) = ?
-        OR LOWER(adr_serv_test) = ?
-        OR LOWER(adr_serv_prod) LIKE ?',
-                [
-                    '%' . $lowerSearch . '%',
-                    '%' . $lowerSearch . '%',
-                    '%' . $lowerSearch . '%',
-                    '%' . $lowerSearch . '%',
-                    $lowerSearch,
-                    $lowerSearch,
-                    '%' . $lowerSearch . '%'
-                ]
-            );
-            // ✅ Enregistrement de l'historique, même si AJAX
-            SearchHistory::create([
-                'search_term' => $searchQuery,
-                'user_ip' => $request->ip(),
-                'user_session' => session()->getId(),
-                'results_count' => count($results),
-            ]);
+            $catalogue = DB::table('catalogues')
+                ->where(function ($query) use ($lowerSearch) {
+                    $query->whereRaw('LOWER(app_name) LIKE ?', ['%' . $lowerSearch . '%'])
+                        ->orWhereRaw('LOWER(url_app) LIKE ?', ['%' . $lowerSearch . '%'])
+                        ->orWhereRaw('LOWER(url_doc) LIKE ?', ['%' . $lowerSearch . '%'])
+                        ->orWhereRaw('LOWER(url_git) LIKE ?', ['%' . $lowerSearch . '%'])
+                        ->orWhereRaw('LOWER(adr_serv_dev) = ?', [$lowerSearch])
+                        ->orWhereRaw('LOWER(adr_serv_test) = ?', [$lowerSearch])
+                        ->orWhereRaw('LOWER(adr_serv_prod) LIKE ?', ['%' . $lowerSearch . '%']);
+                })
+                ->orderBy('app_name', 'ASC')
+                ->paginate($perPage)
+                ->appends($request->query());
+        } else {
+
+            $catalogue = DB::table('catalogues')
+                ->orderBy('app_name', 'ASC')
+                ->paginate($perPage);
         }
-
-
-
-        $recentSearches = $this->getRecentSearchesData();
 
         if ($request->ajax()) {
             return response()->json([
                 'success' => true,
-                'data' => $results,
-                'recent_searches' => $recentSearches,
                 'query' => $searchQuery
             ]);
         }
 
 
-
-
         return view('pages.catalogue.application', [
-            'catalogue' => collect($results),
+            'catalogue' => $catalogue,
             'search_query' => $searchQuery,
-            'recent_searches' => $recentSearches
+
         ]);
     }
 
-    // Méthodes utilitaires privées
-    public function getRecentSearchesData()
-    {
-        return session()->getId()
-            ? SearchHistory::getRecentSearches(session()->getId())
-            : [];
-    }
-
-
-
-    /**
-     * Nettoie et formate les données critiques
-     */
-
-
+    // recuperer les données des recherche recentes par session
 
     /** Cette fonction servira à ajouter une nouvelle app à la bd */
     public function createCatalogue(Request $request)
@@ -132,6 +96,7 @@ class CatalogueController extends Controller
             // Environnement DEV
             'env_dev' => 'nullable|string|max:255',
             'adr_serv_dev' => 'nullable|string|max:255',
+            'nom_dns' => 'nullable|string|max:255',
             'sys_exp_dev' => 'nullable|string|max:255',
             'adr_serv_bd_dev' => 'nullable|string|max:255',
             'sys_exp_bd_dev' => 'nullable|string|max:255',
@@ -200,6 +165,7 @@ class CatalogueController extends Controller
             // DEV
             'env_dev' => $validatedData['env_dev'],
             'adr_serv_dev' => $validatedData['adr_serv_dev'],
+            'nom_dns' => $validatedData['nom_dns'],
             'sys_exp_dev' => $validatedData['sys_exp_dev'],
             'adr_serv_bd_dev' => $validatedData['adr_serv_bd_dev'],
             'sys_exp_bd_dev' => $validatedData['sys_exp_bd_dev'],
@@ -298,8 +264,6 @@ class CatalogueController extends Controller
         }
     }
 
-
-
     public function updateCatalogue(Request $request, $id)
     {
         $validatedData = $request->validate([
@@ -312,6 +276,7 @@ class CatalogueController extends Controller
             // Environnement DEV
             'env_dev' => 'nullable|string|max:255',
             'adr_serv_dev' => 'nullable|string|max:255',
+            'nom_dns' => 'nullable|string|max:255',
             'sys_exp_dev' => 'nullable|string|max:255',
             'adr_serv_bd_dev' => 'nullable|string|max:255',
             'sys_exp_bd_dev' => 'nullable|string|max:255',
@@ -381,6 +346,7 @@ class CatalogueController extends Controller
             // DEV
             'env_dev' => $validatedData['env_dev'],
             'adr_serv_dev' => $validatedData['adr_serv_dev'],
+            'nom_dns' => $validatedData['nom_dns'],
             'sys_exp_dev' => $validatedData['sys_exp_dev'],
             'adr_serv_bd_dev' => $validatedData['adr_serv_bd_dev'],
             'sys_exp_bd_dev' => $validatedData['sys_exp_bd_dev'],
@@ -462,6 +428,7 @@ class CatalogueController extends Controller
         }
     }
 
+    // vu que les services critiques sont en format JSON cette function se charge de les formater en simple array
     protected function cleanCriticalData(array $data): string
     {
         // Supprime les doublons, valeurs vides et espaces superflus
@@ -478,28 +445,7 @@ class CatalogueController extends Controller
 
 
 
-    public function getRecentSearches(Request $request)
-    {
-        $recentSearches = [];
 
-        if (session()->getId()) {
-            $recentSearches = SearchHistory::where('user_session', session()->getId())
-                ->select('search_term', DB::raw('MAX(results_count) as results_count'))
-                ->groupBy('search_term')
-                ->orderBy('created_at', 'desc')
-                ->limit(15)
-                ->get();
-        }
-
-        if ($request->ajax()) {
-            return response()->json([
-                'success' => true,
-                'recent_searches' => $recentSearches
-            ]);
-        }
-
-        return $recentSearches;
-    }
 
     /**
      * Cette fonction servira à supprimer une application du catalogue
@@ -539,136 +485,59 @@ class CatalogueController extends Controller
 
 
     /**
-     * Cette fonction servira à vider complètement l'historique de recherche pour la session courante
+     * Cette fonction servira à exporter l'ensemble du catalogue en format EXCEL
      */
-    public function clearSearchHistory(Request $request)
-    {
-        try {
-            if (!session()->getId()) {
-                if ($request->ajax()) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Session non trouvée.'
-                    ], 400);
-                }
-
-                return redirect()->back()->with('error', 'Session non trouvée.');
-            }
-
-            // Supprimer tout l'historique pour cette session
-            $deleted = SearchHistory::where('user_session', session()->getId())->delete();
-
-            if ($deleted > 0) {
-                // Log de l'action de suppression
-                Log::info('Historique de recherche vidé pour la session: ' . session()->getId() . ' (' . $deleted . ' entrées supprimées)');
-
-                // Vérifier si c'est une requête AJAX
-                if ($request->ajax()) {
-                    return response()->json([
-                        'success' => true,
-                        'message' => 'Historique de recherche vidé avec succès.',
-                        'deleted_count' => $deleted
-                    ]);
-                }
-
-                // Ajout du message flash pour SweetAlert2
-                return redirect()->back()->with('success', 'Historique de recherche vidé avec succès.');
-            } else {
-                if ($request->ajax()) {
-                    return response()->json([
-                        'success' => true,
-                        'message' => 'L\'historique était déjà vide.',
-                        'deleted_count' => 0
-                    ]);
-                }
-
-                return redirect()->back()->with('info', 'L\'historique était déjà vide.');
-            }
-        } catch (\Exception $e) {
-            Log::error('Erreur vidage historique de recherche: ' . $e->getMessage());
-
-            // Vérifier si c'est une requête AJAX
-            if ($request->ajax()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Erreur lors du vidage de l\'historique.'
-                ], 500);
-            }
-
-            // Ajout du message flash pour SweetAlert2
-            return redirect()->back()->with('error', 'Erreur lors du vidage de l\'historique.');
-        }
-    }
 
     public function exportAll()
     {
         $allApps = DB::connection('mysql')->select('SELECT * FROM catalogues ORDER BY app_name ASC');
         return Excel::download(new CatalogueExport($allApps), 'catalogue_complet.xlsx');
     }
-    /**
-     * Exporte les applications filtrées en Excel
-     */
-    public function exportFiltered(Request $request)
+
+
+
+    public function faireDemande(Request $request)
     {
-        $searchQuery = $request->get('search_query', '');
 
-        if (empty($searchQuery)) {
-            return $this->exportAll();
+        $validatedData = $request->validate([
+            'description' => 'nullable|string|max:255',
+            'environnement' => 'required|in:DEV,TEST,PROD',
+            'type_serveur' => 'nullable|in:physique,virtuel,cloud',
+            'systeme_exploitation' => 'required|string|max:100',
+            'version_os' => 'required|string|max:50',
+            'architecture' => 'nullable|in:32-bit,64-bit',
+            'ram_go' => 'required|integer|min:1',
+            'stockage_go' => 'required|integer|min:1',
+            'type_stockage' => 'nullable|in:HDD,SSD',
+        ]);
+
+        $data = [
+            'description' => $validatedData['description'] ?? null,
+            'user_id' => auth()->id(),
+            'environnement' => $validatedData['environnement'],
+            'type_serveur' => $validatedData['type_serveur'] ?? 'virtuel',
+            'systeme_exploitation' => $validatedData['systeme_exploitation'],
+            'version_os' => $validatedData['version_os'],
+            'architecture' => $validatedData['architecture'] ?? '64-bit',
+            'ram_go' => $validatedData['ram_go'],
+            'stockage_go' => $validatedData['stockage_go'],
+            'type_stockage' => $validatedData['type_stockage'] ?? 'SSD',
+        ];
+
+
+        try {
+            // Insertion et récupération de l'ID
+            $demandeId = DB::table('demande_serveur')->insertGetId($data);
+            $data['id'] = $demandeId; // Ajout de l'ID pour la notification
+
+            return $request->ajax()
+                ? response()->json(['success' => true, 'message' => 'Demande de serveur créée avec succès.'])
+                : redirect()->back()->with('success', 'Demande de serveur créée avec succès.');
+        } catch (\Exception $e) {
+            Log::error('Erreur création demande serveur: ' . $e->getMessage() . ' ligne: ' . $e->getLine());
+            return $request->ajax()
+                ? response()->json(['success' => false, 'message' => $e->getMessage()], 500)
+                : redirect()->back()->with('error', 'Erreur lors de la création.');
         }
-
-        $lowerSearch = strtolower($searchQuery);
-        $results = DB::connection('mysql')->select(
-            '
-        SELECT app_name ,
-        desc_app
-        url_app ,
-        url_doc ,
-        url_git ,,
-        env_dev ,
-        adr_serv_dev  ,
-        sys_exp_dev ,
-        adr_serv_bd_dev ,
-        sys_exp_bd_dev ,
-        lang_deve_dev ,
-        critical_dev ,
-        statut_dev ,
-
-        env_prod ,
-        adr_serv_prod ,
-        sys_exp_prod ,
-        adr_serv_bd_prod ,
-        sys_exp_bd_prod ,
-        lang_deve_prod ,
-        critical_prod ,
-        statut_prod ,
-
-        env_test ,
-        adr_serv_test ,
-        sys_exp_test ,
-        adr_serv_bd_test ,
-        sys_exp_bd_test ,
-        lang_deve_test ,
-        critical_test ,
-        statut_test   FROM catalogues
-        WHERE LOWER(app_name) LIKE ?
-        OR LOWER(url_app) LIKE ?
-        OR LOWER(url_doc) LIKE ?
-        OR LOWER(url_git) LIKE ?
-        OR LOWER(adr_serv_dev) = ?
-        OR LOWER(adr_serv_test) = ?
-        OR LOWER(adr_serv_prod) LIKE ?',
-            [
-                '%' . $lowerSearch . '%',
-                '%' . $lowerSearch . '%',
-                '%' . $lowerSearch . '%',
-                '%' . $lowerSearch . '%',
-                $lowerSearch,
-                $lowerSearch,
-                '%' . $lowerSearch . '%'
-            ]
-        );
-
-        $filename = 'catalogue_filtre_' . str_replace(' ', '_', $searchQuery) . '.xlsx';
-        return Excel::download(new CatalogueExport($results), $filename);
     }
 }

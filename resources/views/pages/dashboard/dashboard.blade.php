@@ -1,9 +1,15 @@
 @extends('layouts.app')
 @section('title', 'TABLEAU DE BOARD')
 @section('text', 'RETROUVEZ L\'ENSEMBLE DES STATISTIQUES DU CATALOGUE ICI')
-
 @section('content')
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa;
+        }
+
         .stat-card {
             border-radius: 0.5rem;
             box-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.05);
@@ -316,6 +322,7 @@
 @endsection
 
 @section('script')
-    <!-- Bootstrap Bundle avec Popper -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+
+
 @endsection

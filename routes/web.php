@@ -4,43 +4,51 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CatalogueController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DemandeServController;
 
 Route::get('/', function () {
     return view('pages.Auth.login');
 });
 
-
-// Routes accessibles aux invités seulement
-Route::middleware('guest')->group(function () {
-    Route::get('/login', [AuthController::class, 'showLoginForm'])->name('connexion');
-    Route::post('/login', [AuthController::class, 'login'])->name('login');
-    Route::get('/guest-access', [AuthController::class, 'guestAccess'])->name('guest.access');
+Route::get('/test', function () {
+    return view('test');
 });
 
-// Routes accessibles aux utilisateurs connectés
-Route::middleware(['auth', \App\Http\Middleware\CheckRole::class . ':admin'])->group(function () {
 
-    Route::get('catalogue/all', [CatalogueController::class, 'getAllCatalogue'])->name('catalogue.all');
+Route::get('/login', [AuthController::class, 'showLoginForm'])->name('connexion');
+Route::post('/login', [AuthController::class, 'login'])->name('login');
 
-    Route::post('createCatalogue', [CatalogueController::class, 'createCatalogue'])->name('catalogue.create');
-    Route::get('/catalogue/{id}/edit', [CatalogueController::class, 'editCatalogue'])->name('catalogue.edit');
-    Route::post('/catalogue/{id}', [CatalogueController::class, 'updateCatalogue'])->name('catalogue.update.post');
-    Route::put('/catalogue/{id}', [CatalogueController::class, 'updateCatalogue'])->name('catalogue.update');
-    Route::delete('/catalogue/{id}/delete', [CatalogueController::class, 'deleteCatalogue'])->name('catalogue.delete');
-    Route::get('/recent-searches', [CatalogueController::class, 'getRecentSearches'])->name('get.recent.searches');
+// Routes accessibles aux utilisateurs connectés (admin et user)
+Route::middleware(['auth', \App\Http\Middleware\CheckRole::class . ':admin,user'])->group(function () {
 
-    Route::get('/catalogue/export/all', [CatalogueController::class, 'exportAll'])->name('catalogue.export.all');
-    Route::get('/catalogue/export/filtered', [CatalogueController::class, 'exportFiltered'])->name('catalogue.export.filtered');
+    // Routes catalogue accessibles à tous les utilisateurs authentifiés
+    Route::prefix('catalogue')->group(function () {
+        Route::get('/', [CatalogueController::class, 'getCatalogue'])->name('catalogue');
+        Route::post('/', [CatalogueController::class, 'postCatalogue'])->name('catalogue.search');
+    });
 });
 
-Route::get('/catalogue', [CatalogueController::class, 'getCatalogue'])->name('catalogue')->middleware(['auth', \App\Http\Middleware\CheckRole::class . ':admin,user']);
-Route::post('catalogue', [CatalogueController::class, 'postCatalogue'])->name('catalogue')->middleware(['auth', \App\Http\Middleware\CheckRole::class . ':admin,user']);
-Route::post('/clear-search-history', [CatalogueController::class, 'clearSearchHistory'])->name('clear.search.history')->middleware(['auth', \App\Http\Middleware\CheckRole::class . ':admin,user']);
-
-// Routes accessibles uniquement à l'admin
+// Routes réservées à l'admin uniquement
 Route::middleware(['auth', \App\Http\Middleware\CheckRole::class . ':admin'])->group(function () {
+
+    // Dashboard admin
     Route::get('/dashboard', [DashboardController::class, 'getStats'])->name('dashboard');
+
+    // Gestion complète du catalogue
+    Route::prefix('catalogue')->group(function () {
+        Route::get('all', [CatalogueController::class, 'getAllCatalogue'])->name('catalogue.all');
+        Route::get('export/all', [CatalogueController::class, 'exportAll'])->name('catalogue.export.all');
+
+        Route::post('create', [CatalogueController::class, 'createCatalogue'])->name('catalogue.create');
+        Route::get('{id}/edit', [CatalogueController::class, 'editCatalogue'])->name('catalogue.edit');
+        Route::put('{id}', [CatalogueController::class, 'updateCatalogue'])->name('catalogue.update');
+        Route::delete('{id}/delete', [CatalogueController::class, 'deleteCatalogue'])->name('catalogue.delete');
+    });
+
+    Route::post('demande', [CatalogueController::class, 'faireDemande'])->name('faire.demande');
 });
 
-// Route de déconnexion (protégée par auth simple)
-Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
+// Route de déconnexion (accessible à tous les utilisateurs connectés)
+Route::middleware('auth')->group(function () {
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+});

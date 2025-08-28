@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use App\Models\User;
 
 class AuthController extends Controller
 {
@@ -40,9 +41,7 @@ class AuthController extends Controller
 
         // Redirection selon le rôle
         if ($user->role === 'admin') {
-            // Optionnel : vous pouvez ajouter un SweetAlert de succès si vous le souhaitez après la redirection
-            // mais cela nécessiterait un middleware ou un script sur la page de destination.
-            // Pour une connexion réussie, une redirection simple est souvent suffisante.
+
             return redirect()->route('dashboard');
         }
 
@@ -51,13 +50,7 @@ class AuthController extends Controller
 
 
 
-    public function guestAccess()
-    {
 
-        session(['user_type' => 'guest']);
-
-        return redirect()->route('catalogue');
-    }
 
     public function logout(Request $request)
     {
